@@ -19,7 +19,8 @@ struct ContentView: View {
                 TextField("Email or Username", text: $username)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .keyboardType(.emailAddress)
-                    .autocapitalization(.none)
+                    .textInputAutocapitalization(.never)   // ✅ modern replacement
+                    .autocorrectionDisabled(true)          // ✅ disable autocorrect
                     .padding(.horizontal)
 
                 SecureField("Password", text: $password)
@@ -37,45 +38,111 @@ struct ContentView: View {
                         .cornerRadius(10)
                         .padding(.horizontal)
                 }
-                
+
                 Button(action: {
                     handleCreateAccount()
                 }) {
                     Text("Sign Up")
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.blue)
+                        .background(Color.green)  // ✅ different color for clarity
                         .foregroundColor(.white)
                         .cornerRadius(10)
                         .padding(.horizontal)
                 }
-                
+
                 Spacer()
             }
             .padding()
             .alert(isPresented: $showingAlert) {
-                Alert(title: Text("Login Status"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+                Alert(
+                    title: Text("Login Status"),
+                    message: Text(alertMessage),
+                    dismissButton: .default(Text("OK"))
+                )
             }
             .navigationTitle("Authentication")
         }
     }
     
+    // MARK: - Handlers
     func handleCreateAccount() {
         alertMessage = "Coming soon!"
         showingAlert = true
     }
 
     func handleLogin() {
-        if username.isEmpty || password.isEmpty {
+        guard !username.isEmpty, !password.isEmpty else {
             alertMessage = "Please fill in all fields."
             showingAlert = true
-        } else if username == "admin" && password == "admin" {
-            // Correct: Just set the state and let the parent view handle the navigation.
-            isAuthenticated = true
-        } else {
-            alertMessage = "Invalid credentials."
-            showingAlert = true
+            return
         }
+        
+        let loginRequest = LoginRequestDTO(username: username, password: password)
+        guard let jsonData = try? JSONEncoder().encode(loginRequest) else {
+            alertMessage = "Encoding failed."
+            showingAlert = true
+            return
+        }
+        
+        guard let url = URL(string: "https://springapi-b2z9.onrender.com/api/v1/user-account/getUserAccount") else {
+            alertMessage = "Invalid URL."
+            showingAlert = true
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = jsonData
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                DispatchQueue.main.async {
+                    alertMessage = "Error: \(error.localizedDescription)"
+                    showingAlert = true
+                }
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse,
+               !(200...299).contains(httpResponse.statusCode) {
+                DispatchQueue.main.async {
+                    alertMessage = "Server error: \(httpResponse.statusCode)"
+                    showingAlert = true
+                }
+                return
+            }
+            
+            guard let data = data else {
+                DispatchQueue.main.async {
+                    alertMessage = "No data received."
+                    showingAlert = true
+                }
+                return
+            }
+            
+            do {
+                let decodedResponse = try JSONDecoder().decode(LoginResponseDTO.self, from: data)
+                print(decodedResponse)
+                DispatchQueue.main.async {
+                    if decodedResponse.status == "OK" {
+                        isAuthenticated = true
+                        alertMessage = "Welcome, \(decodedResponse.userDetails.firstName) \(decodedResponse.userDetails.lastName)!"
+                    } else {
+                        isAuthenticated = false
+                        alertMessage = decodedResponse.message
+                    }
+                    showingAlert = true
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    alertMessage = "Decoding failed: \(error.localizedDescription)"
+                    showingAlert = true
+                }
+            }
+
+        }.resume()
     }
 }
 

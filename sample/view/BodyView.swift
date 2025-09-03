@@ -19,6 +19,8 @@ struct BodyView: View {
             .navigationTitle("Welcome") // Add a title
         }
     }
+    
+    
 }
 
 #Preview {
