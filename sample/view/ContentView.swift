@@ -6,8 +6,7 @@ struct ContentView: View {
     @State private var showingAlert: Bool = false
     @State private var alertMessage: String = ""
     
-    // The binding to the app's authentication state.
-    @Binding var isAuthenticated: Bool
+    @EnvironmentObject var session: UserSession   // ✅ shared state
 
     var body: some View {
         NavigationStack {
@@ -19,8 +18,8 @@ struct ContentView: View {
                 TextField("Email or Username", text: $username)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .keyboardType(.emailAddress)
-                    .textInputAutocapitalization(.never)   // ✅ modern replacement
-                    .autocorrectionDisabled(true)          // ✅ disable autocorrect
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
                     .padding(.horizontal)
 
                 SecureField("Password", text: $password)
@@ -45,7 +44,7 @@ struct ContentView: View {
                     Text("Sign Up")
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.green)  // ✅ different color for clarity
+                        .background(Color.green)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                         .padding(.horizontal)
@@ -62,11 +61,13 @@ struct ContentView: View {
                 )
             }
             .navigationTitle("Authentication")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
     
     // MARK: - Handlers
     func handleCreateAccount() {
+        session.viewType = .signup
         alertMessage = "Coming soon!"
         showingAlert = true
     }
@@ -84,8 +85,8 @@ struct ContentView: View {
             showingAlert = true
             return
         }
-        
-        guard let url = URL(string: "https://springapi-b2z9.onrender.com/api/v1/user-account/getUserAccount") else {
+        let urlString = "https://springapi-b2z9.onrender.com/api/v1/user-account/getUserAccount"
+        guard let url = URL(string: urlString) else {
             alertMessage = "Invalid URL."
             showingAlert = true
             return
@@ -124,13 +125,15 @@ struct ContentView: View {
             
             do {
                 let decodedResponse = try JSONDecoder().decode(LoginResponseDTO.self, from: data)
-                print(decodedResponse)
                 DispatchQueue.main.async {
                     if decodedResponse.status == "OK" {
-                        isAuthenticated = true
+                        session.isAuthenticated = true
+                        session.viewType = .body
+                        session.user = decodedResponse.userDetails
                         alertMessage = "Welcome, \(decodedResponse.userDetails.firstName) \(decodedResponse.userDetails.lastName)!"
                     } else {
-                        isAuthenticated = false
+                        session.isAuthenticated = false
+                        session.viewType = .login
                         alertMessage = decodedResponse.message
                     }
                     showingAlert = true
@@ -141,18 +144,11 @@ struct ContentView: View {
                     showingAlert = true
                 }
             }
-
         }.resume()
     }
 }
 
 #Preview {
-    // Correctly initialize a binding for the preview.
-    struct PreviewWrapper: View {
-        @State private var isAuthenticated = false
-        var body: some View {
-            ContentView(isAuthenticated: $isAuthenticated)
-        }
-    }
-    return PreviewWrapper()
+    ContentView()
+        .environmentObject(UserSession())  // ✅ fixes missing environment object
 }

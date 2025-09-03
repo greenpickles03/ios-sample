@@ -13,6 +13,12 @@ struct LoginRequestDTO: Codable {
     let password: String
 }
 
+struct RegisterRequestDTO: Codable {
+    let username: String
+    let password: String
+    let status: String
+}
+
 struct LoginResponseDTO: Codable {
     let userDetails: UserDetail
     let message: String
@@ -35,6 +41,12 @@ struct UserDetail: Codable {
     let incomeDesc: String
     let incomeSource: String
     let incomeDate: String  // keep as String unless you want to parse as Date
+}
+
+struct Message: Identifiable {
+    let id = UUID()
+    let text: String
+    let isSender: Bool
 }
 
 
