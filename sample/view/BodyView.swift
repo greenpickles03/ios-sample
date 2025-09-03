@@ -1,35 +1,33 @@
 import SwiftUI
 
 struct BodyView: View {
-    @Binding var isAuthenticated: Bool
+    @EnvironmentObject var session: UserSession
     
     var body: some View {
-        NavigationStack { // Wrap in NavigationStack to enable back button
+        NavigationStack {
             VStack(spacing: 20) {
                 Text("Login successful!")
                     .font(.largeTitle)
                 
+                if let user = session.user {
+                    Text("Welcome, \(user.firstName) \(user.lastName)")
+                        .font(.title2)
+                }
+                
                 Button("Logout") {
-                    // Set the authentication state to false to return to the LoginView.
-                    isAuthenticated = false
+                    session.isAuthenticated = false
+                    session.viewType = .login
+                    session.user = nil
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.red)
             }
-            .navigationTitle("Welcome") // Add a title
+            .navigationTitle("Welcome")
         }
     }
-    
-    
 }
 
 #Preview {
-    // A temporary struct is needed to hold a @State variable for the binding.
-    struct PreviewWrapper: View {
-        @State private var isAuthenticated = true
-        var body: some View {
-            BodyView(isAuthenticated: $isAuthenticated)
-        }
-    }
-    return PreviewWrapper()
+    BodyView()
+        .environmentObject(UserSession())  // ✅ same here
 }

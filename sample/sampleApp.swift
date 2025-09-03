@@ -2,18 +2,22 @@ import SwiftUI
 
 @main
 struct sampleApp: App {
-    // The @State variable to hold the authentication state.
-    @State private var isAuthenticated: Bool = false
+    @StateObject private var session = UserSession()   // ✅ single source of truth
 
     var body: some Scene {
         WindowGroup {
-            // Check the state and show the appropriate view.
-            if isAuthenticated {
-                // Pass the binding down to the BodyView so it can handle logout.
-                BodyView(isAuthenticated: $isAuthenticated)
-            } else {
-                // Pass the binding down to the ContentView so it can handle login.
-                ContentView(isAuthenticated: $isAuthenticated)
+            switch session.viewType {
+            case .body:
+                BodyView()
+                    .environmentObject(session)
+
+            case .login:
+                ContentView()
+                    .environmentObject(session)
+
+            case .signup:
+                SignUpView()
+                    .environmentObject(session)
             }
         }
     }
