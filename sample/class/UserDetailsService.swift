@@ -59,6 +59,7 @@ class UserDetailsService {
         // ✅ Request
         var request = URLRequest(url: url)
         print(request)
+        print("test")
         request.httpMethod = "POST"
         request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept") // 👈 helps with Spring APIs
