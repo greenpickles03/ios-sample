@@ -5,24 +5,39 @@ struct BodyView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                Text("Login successful!")
-                    .font(.largeTitle)
-                
-                if let user = session.user {
-                    Text("Welcome, \(user.firstName) \(user.lastName)")
-                        .font(.title2)
+           
+            ZStack{
+            
+                VStack(spacing: 20) {
+                    Text("Login successful!")
+                        .font(.largeTitle)
+                        .foregroundColor(.white)
+                    
+                    if let user = session.user {
+                        Text("Welcome, \(user.username) \(user.userId)")
+                            .font(.title2)
+                    }
+                    
+                    Button("Logout") {
+                        session.isAuthenticated = false
+                        session.viewType = .dashboard
+                        session.user = nil
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.red)
+                    
                 }
                 
-                Button("Logout") {
-                    session.isAuthenticated = false
-                    session.viewType = .login
-                    session.user = nil
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.red)
+                .navigationTitle("Welcome")
+                .navigationBarTitleDisplayMode(.large)
+                .padding()
+                
             }
-            .navigationTitle("Welcome")
+            .padding()
+            .background(Color.gray)          // card background
+            .cornerRadius(20)
+            .shadow(radius: 5)                // subtle shadow
+            .padding()
         }
     }
 }

@@ -25,6 +25,32 @@ struct LoginResponseDTO: Codable {
     let status: String
 }
 
+struct RegisterResponseDTO: Codable {
+    let userDetails: UserDetailsResponseDTO
+    let status: String
+    let message: String
+}
+
+struct LoginAccountResponseDTO: Codable {
+    let userDetails: LoginDetail
+    let message: String
+    let status: String
+}
+
+struct LoginDetail: Codable {
+    let userId: Int
+    let username: String
+    let password: String
+    let status: String
+}
+
+struct UserDetailsResponseDTO: Codable {
+    let userId: Int
+    let username: String
+    let password: String
+    let status: String
+}
+
 struct UserDetail: Codable {
     let userAccountId: Int
     let userDetailsId: Int
@@ -49,4 +75,29 @@ struct Message: Identifiable {
     let isSender: Bool
 }
 
+struct UserDetailsResponseDTOList: Codable {
+    let status: String
+    let message: String
+    let userDetails: UserDetails?
+
+}
+
+struct UserDetails: Codable {
+    let userDetailsId: Int
+    let userAccountId: Int
+    let firstName: String
+    let lastName: String
+    let address: String
+    let email: String
+    let contactNumber: String
+}
+
+struct CreateUserDetailsRequestDTO: Codable {
+    let userAccountId: Int
+    let firstName: String
+    let lastName: String
+    let address: String
+    let email: String
+    let contactNumber: String
+}
 

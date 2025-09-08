@@ -7,18 +7,28 @@ struct sampleApp: App {
     var body: some Scene {
         WindowGroup {
             switch session.viewType {
-            case .body:
-                BodyView()
-                    .environmentObject(session)
+                case .body:
+                    BodyView()
+                        .environmentObject(session)
 
-            case .login:
-                ContentView()
-                    .environmentObject(session)
+                case .login:
+                    ContentView()
+                        .environmentObject(session)
 
-            case .signup:
-                SignUpView()
-                    .environmentObject(session)
+                case .signup:
+                    SignUpView()
+                        .environmentObject(session)
+                case .dashboard:
+                    DashboardView()
+                        .environmentObject(session)
+                case .register:
+                    UserDetailsRegistrationView()
+                        .environmentObject(session)
+            @unknown default:
+                fatalError("Unknown view type")
+            
             }
+            
         }
     }
 }
